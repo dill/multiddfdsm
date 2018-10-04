@@ -1,0 +1,485 @@
+#LyX 2.3 created this file. For more info see http://www.lyx.org/
+\lyxformat 544
+\begin_document
+\begin_header
+\save_transient_properties true
+\origin unavailable
+\textclass article
+\begin_preamble
+\setcitestyle{round}
+
+% get independent symbol
+\def\independenT#1#2{\mathrel{\rlap{$#1#2$}\mkern2mu{#1#2}}}
+\newcommand{\independent}{\protect\mathpalette{\protect\independenT}{\perp}}
+\end_preamble
+\use_default_options true
+\begin_modules
+knitr
+\end_modules
+\maintain_unincluded_children false
+\language english
+\language_package default
+\inputencoding auto
+\fontencoding global
+\font_roman "default" "default"
+\font_sans "default" "default"
+\font_typewriter "default" "default"
+\font_math "auto" "auto"
+\font_default_family default
+\use_non_tex_fonts false
+\font_sc false
+\font_osf false
+\font_sf_scale 100 100
+\font_tt_scale 100 100
+\use_microtype false
+\use_dash_ligatures true
+\graphics default
+\default_output_format default
+\output_sync 0
+\bibtex_command bibtex
+\index_command default
+\paperfontsize default
+\spacing single
+\use_hyperref false
+\papersize default
+\use_geometry false
+\use_package amsmath 1
+\use_package amssymb 1
+\use_package cancel 1
+\use_package esint 1
+\use_package mathdots 1
+\use_package mathtools 1
+\use_package mhchem 1
+\use_package stackrel 1
+\use_package stmaryrd 1
+\use_package undertilde 1
+\cite_engine natbib
+\cite_engine_type authoryear
+\biblio_style plainnat
+\use_bibtopic false
+\use_indices false
+\paperorientation portrait
+\suppress_date false
+\justification true
+\use_refstyle 1
+\use_minted 0
+\index Index
+\shortcut idx
+\color #008000
+\end_index
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\paragraph_indentation default
+\is_math_indent 0
+\math_numbering_side default
+\quotes_style english
+\dynamic_quotes 0
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\html_math_output 0
+\html_css_as_file 0
+\html_be_strict false
+\end_header
+
+\begin_body
+
+\begin_layout Title
+Multiple detection functions in density surface models
+\end_layout
+
+\begin_layout Author
+David L Miller
+\end_layout
+
+\begin_layout Abstract
+We often want to combine data from multiple surveys into one spatial model.
+ In this case we usually want to include multiple detection functions and
+ use them with a single GAM.
+ Here I show how to do that.
+\end_layout
+
+\begin_layout Section
+Introduction
+\end_layout
+
+\begin_layout Standard
+Generally for a DSM we have:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\mathbb{E}\left[n_{i}|\boldsymbol{\beta},\boldsymbol{\lambda},p(\hat{\boldsymbol{\theta}};\mathbf{z}_{i})\right]=a_{i}p(\hat{\boldsymbol{\theta}};\mathbf{z}_{i})\exp\left(\beta_{0}+\sum_{k}f_{k}(x_{ik})\right),
+\]
+
+\end_inset
+
+where the number of individuals per segment (of area 
+\begin_inset Formula $a_{i}$
+\end_inset
+
+), 
+\begin_inset Formula $n_{i}$
+\end_inset
+
+, follows some count distribution such as quasi-Poisson, Tweedie or negative
+ binomial and we assume a 
+\begin_inset Formula $\log$
+\end_inset
+
+ link.
+ The 
+\begin_inset Formula $f_{k}$
+\end_inset
+
+ are smooth functions of environmental covariates, 
+\begin_inset Formula $x_{ik}$
+\end_inset
+
+, represented by a basis expansion (i.e., 
+\begin_inset Formula $f_{k}(x)=\sum_{j}\beta_{j}b_{j}(x)$
+\end_inset
+
+ for some basis functions 
+\begin_inset Formula $b_{j}$
+\end_inset
+
+) penalized by a (sum of) quadratic penalty (or penalties); 
+\begin_inset Formula $\beta_{0}$
+\end_inset
+
+ is an intercept term, included in parameter vector 
+\begin_inset Formula $\boldsymbol{\beta}$
+\end_inset
+
+; 
+\begin_inset Formula $\boldsymbol{\lambda}$
+\end_inset
+
+ is a vector of smoothing parameters which control the wiggliness of the
+ smooth components of the model.
+\end_layout
+
+\begin_layout Description
+Focussing on the 
+\begin_inset Formula $p(\hat{\boldsymbol{\theta}};\mathbf{z}_{i})$
+\end_inset
+
+, we assume here that there is one probability of detection for a given
+ segment, 
+\begin_inset Formula $i$
+\end_inset
+
+.
+ We make no assumption about the source of the 
+\begin_inset Formula $p(\hat{\boldsymbol{\theta}};\mathbf{z}_{i})$
+\end_inset
+
+ and, infact we could have that 
+\begin_inset Formula $p(\hat{\boldsymbol{\theta}}_{1};\mathbf{z}_{1})$
+\end_inset
+
+ is from one detection function and 
+\begin_inset Formula $p(\hat{\boldsymbol{\theta}}_{2};\mathbf{z}_{2})$
+\end_inset
+
+ is from another where 
+\begin_inset Formula $\hat{\boldsymbol{\theta}}=(\hat{\boldsymbol{\theta}}_{1},\hat{\boldsymbol{\theta}}_{2})$
+\end_inset
+
+, provided that 
+\begin_inset Formula $\mathbf{z}_{1}$
+\end_inset
+
+and 
+\begin_inset Formula $\mathbf{z}_{2}$
+\end_inset
+
+are covariates from distinct segments).
+ For clarity I adopt the following notation: 
+\begin_inset Formula $p_{i}=p_{k}(\hat{\boldsymbol{\theta}}_{k};\mathbf{z}_{i})$
+\end_inset
+
+ is probability of detection for segment 
+\begin_inset Formula $i$
+\end_inset
+
+ from detection function 
+\begin_inset Formula $k$
+\end_inset
+
+ (with our 
+\begin_inset Quotes eld
+\end_inset
+
+no overlap
+\begin_inset Quotes erd
+\end_inset
+
+ rule in place still, so the detectability for segment 
+\shape italic
+
+\begin_inset Formula $i$
+\end_inset
+
+
+\shape default
+ is only calculated by one detection function).
+ Let's say there are 
+\begin_inset Formula $K$
+\end_inset
+
+ detection functions total.
+\end_layout
+
+\begin_layout Subsection
+Variance estimation
+\end_layout
+
+\begin_layout Standard
+This only addresses fixed effects, what about variance.
+ 
+\end_layout
+
+\begin_layout Subsection
+Delta method
+\end_layout
+
+\begin_layout Standard
+Calculate 
+\begin_inset Formula $\text{CV}(\hat{N})=\sqrt{\text{CV}{}_{\text{GAM}}(\hat{N})^{2}+\sum_{k}\text{CV}(\hat{p}_{k})^{2}}$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Subsection
+Variance via variance propagation
+\end_layout
+
+\begin_layout Standard
+Thinking about the variance propagation method of Bravington, Miller and
+ Hedley
+\begin_inset Foot
+status open
+
+\begin_layout Plain Layout
+\begin_inset Flex URL
+status open
+
+\begin_layout Plain Layout
+
+https://arxiv.org/abs/1807.07996
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+, we need not only the 
+\begin_inset Formula $p_{k}(\hat{\boldsymbol{\theta}};\mathbf{z}_{i})$
+\end_inset
+
+s but also their derivatives wrt 
+\begin_inset Formula $\hat{\boldsymbol{\theta}}$
+\end_inset
+
+ and the Hessian corresponding to the detection functions.
+ Following from the varprop paper, we fit the following model to estimate
+ variance:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\log\mathbb{E}\left[n_{i}|\boldsymbol{\beta},\boldsymbol{\lambda},\hat{p}_{i}\right]=\log a_{i}\hat{p}_{i}+X_{i}\boldsymbol{\beta}+\kappa_{i}\boldsymbol{\delta},
+\]
+
+\end_inset
+
+ defining the vectors 
+\begin_inset Formula $\boldsymbol{\delta}\triangleq\hat{\boldsymbol{\theta}}-\boldsymbol{\theta}_{0}$
+\end_inset
+
+ and 
+\begin_inset Formula $\kappa_{i}\triangleq\left.\frac{d\log p\left(\boldsymbol{\theta},z_{i}\right)}{d\boldsymbol{\theta}}\right|_{\boldsymbol{\theta}=\boldsymbol{\theta}_{0}}$
+\end_inset
+
+.
+ Extending this to our case of multiple detection functions, the definition
+ of 
+\begin_inset Formula $\boldsymbol{\delta}$
+\end_inset
+
+ follows simply and 
+\begin_inset Formula $\kappa_{i}\triangleq\left.\frac{d\log p_{k}\left(\boldsymbol{\theta}_{k},z_{i}\right)}{d\boldsymbol{\theta}_{k}}\right|_{\boldsymbol{\theta}_{k}=\boldsymbol{\theta}_{0,k}}$
+\end_inset
+
+ .
+ We then also need to form the covariance matrix for the detection functions,
+ I think we have to assume no covariance between the detection functions,
+ so we have:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\mathbf{V}_{\boldsymbol{\theta}}=\left(\begin{array}{cccc}
+\mathbf{V}_{\boldsymbol{\theta_{1}}} & 0 & \ldots & 0\\
+0 & \mathbf{V}_{\boldsymbol{\theta}_{2}} & \ddots & \vdots\\
+\vdots & \ddots & \ddots & 0\\
+0 & \ldots & 0 & \mathbf{V}_{\boldsymbol{\theta}_{K}}
+\end{array}\right).
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+Implementation
+\end_layout
+
+\begin_layout Standard
+To implement this in 
+\family typewriter
+dsm
+\family default
+ you need to be able to identify each observation as being from one detection
+ function.
+ You also need to be able to know which segments relate to a given detection
+ function.
+ This leads to some implementation differences in dsm.
+ 
+\end_layout
+
+\begin_layout Description
+Detection
+\begin_inset space ~
+\end_inset
+
+function: One detection function for each data subset (e.g., per cruise etc).
+\end_layout
+
+\begin_layout Description
+Observation
+\begin_inset space ~
+\end_inset
+
+table: The observation table is unchanged (it seems easiest to concatenate
+ the tables used to fit the detection function) 
+\shape italic
+but
+\shape default
+ you must ensure that the object IDs (column 
+\family typewriter
+object
+\family default
+) are unique and match those used to fit the detection functions.
+\end_layout
+
+\begin_layout Description
+Segment
+\begin_inset space ~
+\end_inset
+
+table: Additional column 
+\family typewriter
+ddfobj
+\family default
+, which refers to which detection function is used for each set of segments.
+\end_layout
+
+\begin_layout Standard
+The call to 
+\family typewriter
+dsm
+\family default
+ now lets you use a list of detection functions, the order of the detection
+ functions in the list relates to the numbering in the 
+\family typewriter
+ddfobj
+\family default
+ column in the segment table.
+\end_layout
+
+\begin_layout Section
+Some special cases and changes to 
+\family typewriter
+dsm
+\end_layout
+
+\begin_layout Standard
+This approach allows us to do some other stuff that we couldn't do before
+ in 
+\family typewriter
+dsm
+\family default
+.
+\end_layout
+
+\begin_layout Subsection
+Strip transects
+\end_layout
+
+\begin_layout Standard
+A new function is used to construct dummy detection functions for use with
+ 
+\family typewriter
+dsm
+\family default
+.
+ This takes the object IDs, group sizes, truncation and transect type and
+ constructs a model object that can be used with 
+\family typewriter
+dsm
+\family default
+.
+ This replaces the 
+\family typewriter
+strip.width
+\family default
+ way of specifying strip transects.
+ This also works with whatever one might call the point transect equivalent
+ (
+\begin_inset Quotes eld
+\end_inset
+
+circle transects
+\begin_inset Quotes erd
+\end_inset
+
+?).
+\end_layout
+
+\begin_layout Subsection
+Changes
+\end_layout
+
+\begin_layout Itemize
+No longer need to supply the 
+\family typewriter
+transect=
+\family default
+ argument, this is figured out from the detection functions.
+ This means you can mix points and line and strips and circles.
+\end_layout
+
+\begin_layout Itemize
+No 
+\family typewriter
+strip.width
+\family default
+ argument, as this is handled by dummy detection functions.
+\end_layout
+
+\end_body
+\end_document
