@@ -88,11 +88,23 @@ knitr
 \begin_body
 
 \begin_layout Title
-Multiple detection functions in density surface models
+Multiple detection functions in density
+\begin_inset space ~
+\end_inset
+
+surface
+\begin_inset space ~
+\end_inset
+
+models
 \end_layout
 
 \begin_layout Author
 David L Miller
+\end_layout
+
+\begin_layout Address
+CREEM, University of St Andrews, Scotland
 \end_layout
 
 \begin_layout Abstract
@@ -113,7 +125,7 @@ Generally for a DSM we have:
 \begin_layout Standard
 \begin_inset Formula 
 \[
-\mathbb{E}\left[n_{i}|\boldsymbol{\beta},\boldsymbol{\lambda},p(\hat{\boldsymbol{\theta}};\mathbf{z}_{i})\right]=a_{i}p(\hat{\boldsymbol{\theta}};\mathbf{z}_{i})\exp\left(\beta_{0}+\sum_{k}f_{k}(x_{ik})\right),
+\mathbb{E}\left[n_{i}|\boldsymbol{\beta},\boldsymbol{\lambda},p(\hat{\boldsymbol{\theta}};\mathbf{z}_{i})\right]=a_{i}p(\hat{\boldsymbol{\theta}};\mathbf{z}_{i})\exp\left(\beta_{0}+\sum_{m}f_{m}(x_{im})\right),
 \]
 
 \end_inset
@@ -133,15 +145,15 @@ where the number of individuals per segment (of area
 
  link.
  The 
-\begin_inset Formula $f_{k}$
+\begin_inset Formula $f_{m}$
 \end_inset
 
  are smooth functions of environmental covariates, 
-\begin_inset Formula $x_{ik}$
+\begin_inset Formula $x_{im}$
 \end_inset
 
 , represented by a basis expansion (i.e., 
-\begin_inset Formula $f_{k}(x)=\sum_{j}\beta_{j}b_{j}(x)$
+\begin_inset Formula $f_{m}(x)=\sum_{j}\beta_{j}b_{j}(x)$
 \end_inset
 
  for some basis functions 
@@ -164,7 +176,7 @@ where the number of individuals per segment (of area
  smooth components of the model.
 \end_layout
 
-\begin_layout Description
+\begin_layout Standard
 Focussing on the 
 \begin_inset Formula $p(\hat{\boldsymbol{\theta}};\mathbf{z}_{i})$
 \end_inset
@@ -241,8 +253,7 @@ Variance estimation
 \end_layout
 
 \begin_layout Standard
-This only addresses fixed effects, what about variance.
- 
+The above only addresses mean effects, what about variance?
 \end_layout
 
 \begin_layout Subsection
@@ -255,6 +266,16 @@ Calculate
 \end_inset
 
 .
+ There, the 
+\begin_inset Formula $\text{Var}_{\text{GAM}}(\hat{N})$
+\end_inset
+
+ (hence 
+\begin_inset Formula $\text{CV}{}_{\text{GAM}}(\hat{N})$
+\end_inset
+
+) is calculated using the usual GAM estimator (see the varprop paper for
+ details).
 \end_layout
 
 \begin_layout Subsection
@@ -263,9 +284,9 @@ Variance via variance propagation
 
 \begin_layout Standard
 Thinking about the variance propagation method of Bravington, Miller and
- Hedley
+ Hedley (2018)
 \begin_inset Foot
-status open
+status collapsed
 
 \begin_layout Plain Layout
 \begin_inset Flex URL
@@ -342,6 +363,12 @@ s but also their derivatives wrt
 \end_inset
 
 
+\end_layout
+
+\begin_layout Standard
+
+\series bold
+finish this thought...
 \end_layout
 
 \begin_layout Section
@@ -479,6 +506,15 @@ No
 strip.width
 \family default
  argument, as this is handled by dummy detection functions.
+\end_layout
+
+\begin_layout Itemize
+No 
+\family typewriter
+transect
+\family default
+ argument as this can always be determined from the detection functions
+ (dummy or not).
 \end_layout
 
 \end_body
