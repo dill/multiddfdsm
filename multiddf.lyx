@@ -124,9 +124,9 @@ Generally for a DSM we have:
 
 \begin_layout Standard
 \begin_inset Formula 
-\[
-\mathbb{E}\left[n_{i}|\boldsymbol{\beta},\boldsymbol{\lambda},p(\hat{\boldsymbol{\theta}};\mathbf{z}_{i})\right]=a_{i}p(\hat{\boldsymbol{\theta}};\mathbf{z}_{i})\exp\left(\beta_{0}+\sum_{m}f_{m}(x_{im})\right),
-\]
+\begin{equation}
+\mathbb{E}\left[n_{i}|\boldsymbol{\beta},\boldsymbol{\lambda},p(\hat{\boldsymbol{\theta}};\mathbf{z}_{i})\right]=a_{i}p(\hat{\boldsymbol{\theta}};\mathbf{z}_{i})\exp\left(\beta_{0}+\sum_{m}f_{m}(x_{im})\right),\label{eq:dsm-simple}
+\end{equation}
 
 \end_inset
 
@@ -177,75 +177,50 @@ where the number of individuals per segment (of area
 \end_layout
 
 \begin_layout Standard
-Focussing on the 
+When we have multiple detection functions, we write 
 \begin_inset Formula $p(\hat{\boldsymbol{\theta}};\mathbf{z}_{i})$
 \end_inset
 
-, we assume here that there is one probability of detection for a given
- segment, 
-\begin_inset Formula $i$
+ as a piecewise function:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+p(\hat{\boldsymbol{\theta}};\mathbf{z}_{i})=\begin{cases}
+p(\hat{\boldsymbol{\theta}}_{1};\mathbf{z}_{i}) & \text{observation \ensuremath{i} in detection function 1}\\
+\vdots\\
+p(\hat{\boldsymbol{\theta}}_{2};\mathbf{z}_{i}) & \text{observation \ensuremath{i} in detection function 2}\\
+\vdots\\
+p(\hat{\boldsymbol{\theta}}_{K};\mathbf{z}_{i}) & \text{observation \ensuremath{i} in detection function \ensuremath{K}}
+\end{cases},
+\]
+
+\end_inset
+
+so that a given observation is related to one detection function only (indexed
+ by 
+\begin_inset Formula $k=1,\ldots,K$
+\end_inset
+
+).
+ No assumption is made about the specific form of the detection function.
+ We can concatenate all of the detection function parameters 
+\begin_inset Formula $\hat{\boldsymbol{\theta}}=(\hat{\boldsymbol{\theta}}_{1},\hat{\boldsymbol{\theta}}_{2},\ldots,\hat{\boldsymbol{\theta}}_{K})$
 \end_inset
 
 .
- We make no assumption about the source of the 
-\begin_inset Formula $p(\hat{\boldsymbol{\theta}};\mathbf{z}_{i})$
+ We can then fit model 
+\begin_inset CommandInset ref
+LatexCommand eqref
+reference "eq:dsm-simple"
+plural "false"
+caps "false"
+noprefix "false"
+
 \end_inset
 
- and, infact we could have that 
-\begin_inset Formula $p(\hat{\boldsymbol{\theta}}_{1};\mathbf{z}_{1})$
-\end_inset
-
- is from one detection function and 
-\begin_inset Formula $p(\hat{\boldsymbol{\theta}}_{2};\mathbf{z}_{2})$
-\end_inset
-
- is from another where 
-\begin_inset Formula $\hat{\boldsymbol{\theta}}=(\hat{\boldsymbol{\theta}}_{1},\hat{\boldsymbol{\theta}}_{2})$
-\end_inset
-
-, provided that 
-\begin_inset Formula $\mathbf{z}_{1}$
-\end_inset
-
-and 
-\begin_inset Formula $\mathbf{z}_{2}$
-\end_inset
-
-are covariates from distinct segments).
- For clarity I adopt the following notation: 
-\begin_inset Formula $p_{i}=p_{k}(\hat{\boldsymbol{\theta}}_{k};\mathbf{z}_{i})$
-\end_inset
-
- is probability of detection for segment 
-\begin_inset Formula $i$
-\end_inset
-
- from detection function 
-\begin_inset Formula $k$
-\end_inset
-
- (with our 
-\begin_inset Quotes eld
-\end_inset
-
-no overlap
-\begin_inset Quotes erd
-\end_inset
-
- rule in place still, so the detectability for segment 
-\shape italic
-
-\begin_inset Formula $i$
-\end_inset
-
-
-\shape default
- is only calculated by one detection function).
- Let's say there are 
-\begin_inset Formula $K$
-\end_inset
-
- detection functions total.
+ as usual.
 \end_layout
 
 \begin_layout Subsection
@@ -305,7 +280,7 @@ https://arxiv.org/abs/1807.07996
 \end_inset
 
 , we need not only the 
-\begin_inset Formula $p_{k}(\hat{\boldsymbol{\theta}};\mathbf{z}_{i})$
+\begin_inset Formula $p(\hat{\boldsymbol{\theta}};\mathbf{z}_{i})$
 \end_inset
 
 s but also their derivatives wrt 
@@ -325,7 +300,7 @@ s but also their derivatives wrt
 
 \end_inset
 
- defining the vectors 
+defining the vectors 
 \begin_inset Formula $\boldsymbol{\delta}\triangleq\hat{\boldsymbol{\theta}}-\boldsymbol{\theta}_{0}$
 \end_inset
 
@@ -340,13 +315,38 @@ s but also their derivatives wrt
 \end_inset
 
  follows simply and 
-\begin_inset Formula $\kappa_{i}\triangleq\left.\frac{d\log p_{k}\left(\boldsymbol{\theta}_{k},z_{i}\right)}{d\boldsymbol{\theta}_{k}}\right|_{\boldsymbol{\theta}_{k}=\boldsymbol{\theta}_{0,k}}$
+\begin_inset Formula $\kappa_{i}\triangleq\left.\frac{d\log p\left(\boldsymbol{\theta},z_{i}\right)}{d\boldsymbol{\theta}}\right|_{\boldsymbol{\theta}=\boldsymbol{\theta}_{0}}$
 \end_inset
 
- .
- We then also need to form the covariance matrix for the detection functions,
- I think we have to assume no covariance between the detection functions,
- so we have:
+ , where entries where 
+\begin_inset Formula $i$
+\end_inset
+
+ does not belong to detection function 
+\begin_inset Formula $k$
+\end_inset
+
+ are 
+\begin_inset Formula $0$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+We then also need to form the covariance matrix for the detection functions.
+ We assume no covariance between the detection functions
+\begin_inset Foot
+status collapsed
+
+\begin_layout Plain Layout
+There might be cases where we have some information about covariance between
+ the detection functions, but we ignore that for now.
+\end_layout
+
+\end_inset
+
+, so we have:
 \end_layout
 
 \begin_layout Standard
@@ -362,13 +362,18 @@ s but also their derivatives wrt
 
 \end_inset
 
+This can then be used as the covariance matrix for the random effect 
+\begin_inset Formula $\boldsymbol{\delta}$
+\end_inset
 
+.
 \end_layout
 
 \begin_layout Standard
 
 \series bold
-finish this thought...
+Do we need to do something special about scale parameter stuff? Do we need
+ to think about different smoopars for the detection functions?!?!?!?!
 \end_layout
 
 \begin_layout Section
@@ -458,8 +463,11 @@ Strip transects
 \end_layout
 
 \begin_layout Standard
-A new function is used to construct dummy detection functions for use with
- 
+A new function (
+\family typewriter
+dummy_ddf
+\family default
+) is used to construct dummy detection functions for use with 
 \family typewriter
 dsm
 \family default
@@ -496,7 +504,7 @@ No longer need to supply the
 \family typewriter
 transect=
 \family default
- argument, this is figured out from the detection functions.
+ argument, this is determined from the (dummy) detection functions.
  This means you can mix points and line and strips and circles.
 \end_layout
 
