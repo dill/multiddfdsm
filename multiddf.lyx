@@ -138,12 +138,12 @@ where the number of individuals per segment (of area
 \begin_inset Formula $n_{i}$
 \end_inset
 
-, follows some count distribution such as quasi-Poisson, Tweedie or negative
- binomial and we assume a 
+ and follows some count distribution such as quasi-Poisson, Tweedie or negative
+ binomial (where above we assume a 
 \begin_inset Formula $\log$
 \end_inset
 
- link.
+ link).
  The 
 \begin_inset Formula $f_{m}$
 \end_inset
@@ -231,7 +231,7 @@ Variance estimation
 The above only addresses mean effects, what about variance?
 \end_layout
 
-\begin_layout Subsection
+\begin_layout Subsubsection
 Delta method
 \end_layout
 
@@ -253,7 +253,7 @@ Calculate
  details).
 \end_layout
 
-\begin_layout Subsection
+\begin_layout Subsubsection
 Variance via variance propagation
 \end_layout
 
@@ -369,11 +369,90 @@ This can then be used as the covariance matrix for the random effect
 .
 \end_layout
 
-\begin_layout Standard
+\begin_layout Subsection
+Differing density by platform/observation type
+\end_layout
 
-\series bold
-Do we need to do something special about scale parameter stuff? Do we need
- to think about different smoopars for the detection functions?!?!?!?!
+\begin_layout Standard
+Predictions can be made as normal but we may want to include a factor to
+ account for the different underlying densities for each detection function
+ mode (for example if there are flying vs.
+ on water birds).
+ In that case we might formulate our model as:
+\begin_inset Formula 
+\begin{equation}
+\mathbb{E}\left[n_{i}|\boldsymbol{\beta},\boldsymbol{\lambda},p(\hat{\boldsymbol{\theta}};\mathbf{z}_{i})\right]=a_{i}p(\hat{\boldsymbol{\theta}};\mathbf{z}_{i})\exp\left(\beta_{0}+\beta_{\text{state}}\texttt{state}_{i}+\sum_{m}f_{m}(x_{im})\right),\label{eq:dsm-simple-1}
+\end{equation}
+
+\end_inset
+
+in which case we need to make predictions for each of the levels of
+\begin_inset Formula $\texttt{state}$
+\end_inset
+
+ and appropriately combine them.
+ In this case an effort-weighted sum seems appropriate, since we want an
+ 
+\begin_inset Quotes eld
+\end_inset
+
+average
+\begin_inset Quotes erd
+\end_inset
+
+ over the multiple platforms (since we are effectively treating the different
+ types/platforms as separate effort in the model).
+ So then:
+\begin_inset Formula 
+\[
+\hat{N}=\sum_{k=1}^{K}\frac{L_{k}}{\sum_{k=1}^{K}L_{k}}\hat{N}_{k},
+\]
+
+\end_inset
+
+if 
+\begin_inset Formula $L_{k}$
+\end_inset
+
+ is the total effort in platform 
+\begin_inset Formula $k$
+\end_inset
+
+ (of which there are 
+\begin_inset Formula $K$
+\end_inset
+
+) and 
+\begin_inset Formula $\hat{N}_{k}$
+\end_inset
+
+ is the abundance estimate for platform 
+\begin_inset Formula $k$
+\end_inset
+
+.
+ To get to the variance we have:
+\begin_inset Formula 
+\[
+\text{Var}\left(\hat{N}\right)=\sum_{k=1}^{K}\left(\frac{L_{k}}{\sum_{k=1}^{K}L_{k}}\right)^{2}\text{Var}\left(\hat{N}_{k}\right),
+\]
+
+\end_inset
+
+where 
+\begin_inset Formula $\text{Var}\left(\hat{N}_{k}\right)$
+\end_inset
+
+ is the variance estimate for platform 
+\begin_inset Formula $k$
+\end_inset
+
+.
+ Notably, these estimates are really simple when all 
+\begin_inset Formula $K$
+\end_inset
+
+ platforms have the same effort (they are simple averages).
 \end_layout
 
 \begin_layout Section
@@ -390,7 +469,6 @@ dsm
  You also need to be able to know which segments relate to a given detection
  function.
  This leads to some implementation differences in dsm.
- 
 \end_layout
 
 \begin_layout Description
