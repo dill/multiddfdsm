@@ -3,7 +3,7 @@
 library(ggplot2)
 library(mrds)
 library(Distance)
-library(dsm)
+library(dsm) # need github version
 
 load("spermwhale.RData")
 rm(dist)
@@ -33,7 +33,7 @@ bigdsm <- dsm(count~s(x,y), list(df1, df2), segs, obs, family=tw())
 predgrid$p2 <- predict(bigdsm, predgrid, off.set=predgrid$off.set)
 pp <- ggplot(predgrid) +
   geom_tile(aes(x=x,y=y,fill=p2)) +
-  scale_fill_viridis_c(limits=c(0, 3.5))
+  scale_fill_viridis_c(limits=c(0, 4))
 print(pp)
 
 
@@ -45,7 +45,7 @@ adsm <- dsm(count~s(x,y), dfa, segs, obs, family=tw())
 predgrid$p1 <- predict(adsm, predgrid, off.set=predgrid$off.set)
 pp <- ggplot(predgrid) +
   geom_tile(aes(x=x,y=y,fill=p1)) +
-  scale_fill_viridis_c(limits=c(0, 3.5))
+  scale_fill_viridis_c(limits=c(0, 4))
 print(pp)
 
 ## what if we don't use a detection function?
@@ -72,3 +72,39 @@ vp2 <- dsm_varprop(adsm, predgrid)
 vg2 <- dsm.var.gam(adsm, predgrid, predgrid$off.set)
 
 
+
+
+# checking when using a covariate in the detection function
+# first chop-up sea state
+bchops <- c(0, 2, 3, 5)
+segs$Beau_chop <- cut(segs$Beaufort, bchops, include.lowest=TRUE)
+obs$Beau_chop <- cut(obs$Beaufort, bchops, include.lowest=TRUE)
+
+# resplit
+obs1 <- subset(obs, Survey=="en04395")
+obs2 <- subset(obs, Survey=="GU0403")
+
+# fit detection functions
+df1b <- ds(obs1, truncation=6000, formula=~Beau_chop)
+df2b <- ds(obs2, truncation=8000, formula=~Beau_chop)
+
+par(mfrow=c(1,2))
+plot(df1b, main="endeavour")
+plot(df2b, main="gunter")
+
+segs$ddfobj <- 1
+segs$ddfobj[segs$Survey=="GU0403"] <- 2
+
+# build a dsm?
+bigdsmb <- dsm(count~s(x,y), list(df1b, df2b), segs, obs, family=tw())
+
+# check predictions
+predgrid$pb <- predict(bigdsmb, predgrid, off.set=predgrid$off.set)
+pp <- ggplot(predgrid) +
+  geom_tile(aes(x=x,y=y,fill=pb)) +
+  scale_fill_viridis_c(limits=c(0, 4))
+print(pp)
+
+# check variance
+vp <- dsm_varprop(bigdsmb, predgrid)
+vg <- dsm.var.gam(bigdsmb, predgrid, predgrid$off.set)
